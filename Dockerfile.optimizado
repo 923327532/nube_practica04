@@ -1,18 +1,24 @@
 FROM python:3.11-slim
+LABEL maintainer="roberto@example.com"
+LABEL description="Versión Optimizada - Consulta ONPE RPA"
 WORKDIR /app
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    gnupg \
+    unzip \
+    curl \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
     google-chrome-stable \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-
-RUN useradd -m roberto_user
+RUN useradd -m roberto_user && chown -R roberto_user /app
 USER roberto_user
-
 HEALTHCHECK --interval=30s --timeout=5s \
   CMD ls consulta_onpe.py || exit 1
 
+# Ejecución
 CMD ["python", "consulta_onpe.py"]
