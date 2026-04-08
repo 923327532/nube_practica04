@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consulta ONPE</title>
+  <style>
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f4f5f7;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+    .card{width:100%;max-width:560px;background:#fff;border-radius:18px;padding:34px;box-shadow:0 14px 36px rgba(0,0,0,.08)}
+    .logo{font-size:46px;font-weight:800;color:#193d7a;text-align:center;margin:0}
+    .subtitle{font-size:16px;color:#1976d2;text-align:center;margin:6px 0 24px}
+    label{display:block;margin:0 0 8px;font-size:15px;font-weight:700}
+    input{width:100%;padding:15px;border:2px solid #e65c5c;border-radius:8px;font-size:18px;outline:none}
+    button{width:100%;padding:14px;border:none;border-radius:8px;color:#fff;font-size:17px;cursor:pointer;margin-top:14px}
+    .primary{background:#7f7f7f}.primary:hover{background:#5f5f5f}.secondary{background:#1565c0}.secondary:hover{background:#0d4f98}
+    .result{display:none;margin-top:18px;background:#f8fbff;border:1px solid #cfe3fb;padding:16px;border-radius:12px}
+    .item{margin-bottom:10px;line-height:1.4}.key{font-weight:700;color:#1565c0}
+    .help{font-size:13px;color:#666;text-align:center;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="logo">ONPE</h1>
+    <p class="subtitle">Consulta tu local de votación y si eres miembro de mesa</p>
+    <label for="dni">DNI:</label>
+    <input id="dni" placeholder="Número de DNI" maxlength="8" />
+    <button class="primary" onclick="consultar()">CONSULTAR</button>
+    <button class="secondary" onclick="descargarExcel()">DESCARGAR EXCEL</button>
+    <div class="help">Al consultar, la fila se registra o actualiza automáticamente en el Excel.</div>
+    <div class="result" id="result"></div>
+  </div>
+  <script>
+    async function consultar(){
+      const dni = document.getElementById('dni').value.trim();
+      if(!/^\d{8}$/.test(dni)){alert('Ingresa un DNI válido de 8 dígitos');return;}
+      const r = await fetch('/api/consultar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dni})});
+      const data = await r.json();
+      if(data.error){alert(data.error + (data.detail ? ': ' + data.detail : ''));return;}
+      const box = document.getElementById('result');
+      box.style.display='block';
+      box.innerHTML = `
+        <div class='item'><span class='key'>DNI:</span> ${data.dni}</div>
+        <div class='item'><span class='key'>Nombre:</span> ${data.nombre}</div>
+        <div class='item'><span class='key'>Miembro de mesa:</span> ${data.miembroMesa}</div>
+        <div class='item'><span class='key'>Ubicación:</span> ${data.ubicacion}</div>
+        <div class='item'><span class='key'>Dirección:</span> ${data.direccion}</div>`;
+    }
+    function descargarExcel(){ window.open('/api/excel','_blank'); }
+  </script>
+</body>
+</html>

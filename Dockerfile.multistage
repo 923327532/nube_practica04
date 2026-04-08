@@ -1,0 +1,12 @@
+FROM node:20 AS builder
+WORKDIR /app
+COPY package.json ./
+RUN npm install --omit=dev
+COPY . .
+
+FROM ghcr.io/puppeteer/puppeteer:24.7.2
+WORKDIR /app
+COPY --from=builder /app /app
+USER pptruser
+EXPOSE 3000
+CMD ["npm","start"]
