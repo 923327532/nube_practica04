@@ -1,12 +1,14 @@
-FROM node:20 AS builder
+FROM python:3.11-slim AS builder
 WORKDIR /app
-COPY package.json ./
-RUN npm install --omit=dev
-COPY . .
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
 
-FROM ghcr.io/puppeteer/puppeteer:24.7.2
+FROM python:3.11-slim
 WORKDIR /app
-COPY --from=builder /app /app
-USER pptruser
-EXPOSE 3000
-CMD ["npm","start"]
+RUN apt-get update && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /root/.local /root/.local
+COPY . .
+ENV PATH=/root/.local/bin:$PATH
+
+CMD ["python", "consulta_onpe.py"]

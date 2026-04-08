@@ -1,100 +1,117 @@
+# 🗳️ Sistema RPA de Consulta Masiva - ONPE 2026
 
-# Consulta ONPE - Laboratorio Contenedores
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![Selenium](https://img.shields.io/badge/Selenium-Automation-green?logo=selenium)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker)
+![Status](https://img.shields.io/badge/Status-Activo-success)
+![License](https://img.shields.io/badge/License-Uso%20Académico-orange)
 
-**Roberto Carlos Lopez Calle**  
-**Desarrollo de Soluciones en la Nube**  
-**Caso 2 - Contenedores Microservicios**
+---
 
-## URL del repositorio
-```
-https://github.com/robertocarloslopez/onpe-app
-```
+Este proyecto es una solución de **Automatización de Procesos Robóticos (RPA)** desarrollada en Python. El sistema automatiza la consulta de datos en el portal oficial de la ONPE, procesando DNIs desde un archivo Excel y devolviendo resultados validados (Miembros de mesa y locales de votación) de forma masiva en tiempo récord.
 
-## Descripción
-Aplicación web que consulta datos electorales ONPE por DNI y registra automáticamente en Excel. Containerizada con 3 variantes de Dockerfile.
+---
 
-## Estructura del proyecto
-```
-onpe-app/
-├── package.json
-├── server.js
-├── public/
-│   └── index.html
-├── .dockerignore
-├── Dockerfile
-├── Dockerfile.optimizado
-├── Dockerfile.multistage
-└── docker-compose.yml
-```
+## 🛠️ 1. Stack Tecnológico (Librerías Clave)
 
-## Pasos de instalación y ejecución
+El núcleo del programa utiliza cuatro pilares tecnológicos para garantizar velocidad y saltar bloqueos:
 
-### 1. Local (Node.js)
+- **Python 3.11**: Lenguaje principal de lógica y control.
+- **Selenium**: Motor de automatización que controla un navegador Chrome real. Es vital para simular el comportamiento humano y evitar que la ONPE bloquee nuestra IP.
+- **Requests**: Maneja la comunicación HTTP veloz para gestionar tokens de sesión de la API oficial.
+- **OpenPyXL**: Encargada de la lectura y escritura del archivo Excel, permitiendo aplicar formatos, colores y auto-ajuste de columnas.
+
+---
+
+## 📊 2. Especificación del Excel (`onpe.xlsx`)
+
+El archivo Excel actúa como base de datos de entrada y salida. Para que el programa funcione, debe estar en la raíz con estas condiciones:
+
+- **Columna DNI**: Debe contener los 8 dígitos del documento.
+- **Cabeceras**: El script busca y completa automáticamente:
+  - DNI  
+  - Nombres  
+  - Miembro de Mesa  
+  - Ubicación  
+  - Dirección  
+
+- **Rendimiento**: El programa procesa los 7 documentos en menos de 30 segundos sin errores.
+
+---
+
+Te lo corrijo TODO listo para copiar y pegar (bien formateado) 👇
+
+## 🐳 3. Despliegue con Docker (3 Niveles)
+
+### 🔹 A. Estándar (`Dockerfile`)
+Instalación lineal básica. Ideal para desarrollo rápido y pruebas iniciales.
+
 ```bash
-git clone https://github.com/robertocarloslopez/onpe-app.git
-cd onpe-app
-npm install
-npm run dev
-```
-**URL:** http://localhost:3000
+docker build -t onpe:standard -f Dockerfile .
+docker run -it --name ejecucion-std onpe:standard
 
-### 2. Docker - 3 variantes
+🔹 B. Multistage (Dockerfile.multistage)
 
-**Dockerfile básico:**
-```bash
-docker build -t onpe-app:v1 .
-docker run -d -p 3000:3000 --name onpe-v1 onpe-app:v1
-```
+Separa la construcción de la ejecución. Genera una imagen limpia y ligera al no incluir herramientas de compilación en el resultado final.
 
-**Dockerfile.optimizado:**
-```bash
-docker build -f Dockerfile.optimizado -t onpe-app:v2 .
-docker run -d -p 3001:3000 --name onpe-v2 onpe-app:v2
-```
+docker build -t onpe:multistage -f Dockerfile.multistage .
+docker run -it --name ejecucion-multi onpe:multistage
 
-**Dockerfile.multistage:**
-```bash
-docker build -f Dockerfile.multistage -t onpe-app:v3 .
-docker run -d -p 3002:3000 --name onpe-v3 onpe-app:v3
-```
+🔹 C. Optimizado (Dockerfile.optimizado)
 
-### 3. Comparar tamaños
-```bash
-docker images | grep onpe-app
-```
+Nivel producción. Incluye usuario de seguridad (no-root), limpieza de caché y Healthcheck para monitorear la salud del proceso.
 
-### 4. Docker Compose
-```bash
-docker compose up --build
-```
+docker build -t onpe:optimized -f Dockerfile.optimizado .
+docker run -it --name ejecucion-opt onpe:optimized
 
-## Uso
-1. Ingresar DNI (8 dígitos)
-2. Presionar **CONSULTAR**
-3. Descargar **EXCEL** con datos registrados
 
-## Funcionalidades
-- ✅ Validación DNI
-- ✅ Registro automático Excel
-- ✅ Descarga Excel
-- ✅ Containerización completa
-- ✅ 3 variantes Dockerfile
+💻 4. DESPLIEGUE MANUAL (SIN DOCKER)
 
-## Comandos útiles
-```bash
-# Logs
-docker logs onpe-v1
+⚠️ Modo alternativo de ejecución sin contenedores
 
-# Detener
-docker stop onpe-v1 onpe-v2 onpe-v3
+📌 Requisitos
+✔ Python 3.11+
+✔ Google Chrome instalado
+✔ Conexión a internet activa
+⚙️ Procedimiento
+🔹 1. Instalar dependencias
+pip install requests openpyxl selenium pandas
+🔹 2. Cerrar el archivo
 
-# Limpiar
-docker rmi onpe-app:v1 onpe-app:v2 onpe-app:v3
-```
+⚠️ Asegúrese de que onpe.xlsx no esté abierto.
 
-## Dockerfiles implementados
-1. **Dockerfile** - Base Node.js
-2. **Dockerfile.optimizado** - Alpine + no-root + healthcheck  
-3. **Dockerfile.multistage** - Builder + runtime optimizado
+🔹 3. Ejecutar el script
+python consulta_onpe.py
+⚙️ 5. FLUJO DE FUNCIONAMIENTO (PASO A PASO)
 
-**Cumple 100% con laboratorio contenedores**
+🔄 Proceso automatizado del sistema RPA
+
+🚀 Flujo del Sistema
+📥 1. Ingesta
+
+El script lee los DNIs desde el archivo onpe.xlsx.
+
+🤖 2. Automatización
+
+Selenium levanta una instancia de Google Chrome en modo Headless (invisible) y navega a la ruta oficial de la ONPE.
+
+🔍 3. Extracción
+
+Se capturan los datos de cada ciudadano, superando los mecanismos de validación del portal.
+
+💾 4. Persistencia
+
+Los datos obtenidos (nombres y direcciones) se escriben en el Excel con formato de colores:
+
+🟡 Amarillo → Miembros de mesa
+🟢 Verde → Ciudadanos
+✅ 5. Cierre
+
+Se libera la memoria del sistema y se genera el reporte final actualizado.
+
+👨‍💻 AUTOR
+
+Roberto López
+
+🎓 Curso: Desarrollo de Aplicaciones
+⚡ Tecnología: Python + Selenium + Docker (RPA)

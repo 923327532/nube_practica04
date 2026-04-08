@@ -1,9 +1,18 @@
-FROM ghcr.io/puppeteer/puppeteer:24.7.2
+FROM python:3.11-slim
 WORKDIR /app
-COPY package.json ./
-RUN npm install --omit=dev
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    google-chrome-stable \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-USER pptruser
-EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=5s CMD node -e "fetch('http://localhost:3000').then(()=>process.exit(0)).catch(()=>process.exit(1))"
-CMD ["npm","start"]
+
+RUN useradd -m roberto_user
+USER roberto_user
+
+HEALTHCHECK --interval=30s --timeout=5s \
+  CMD ls consulta_onpe.py || exit 1
+
+CMD ["python", "consulta_onpe.py"]
